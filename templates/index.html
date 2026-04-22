@@ -1,226 +1,382 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EuroSAT LULC Classifier</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #080f1e;
+      background: #060d1a;
       color: #e2e8f0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 16px;
+      padding: 30px 16px;
     }
 
     header {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
-    header h1 { font-size: 1.8rem; color: #38bdf8; }
-    header p  { color: #64748b; margin-top: 6px; font-size: 0.9rem; }
 
-    .main {
-      display: flex;
-      gap: 24px;
+    header h1 {
+      font-size: 1.9rem;
+      color: #38bdf8;
+      letter-spacing: -.01em;
+    }
+
+    header p {
+      color: #475569;
+      margin-top: 6px;
+      font-size: 0.88rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
       width: 100%;
-      max-width: 960px;
-      flex-wrap: wrap;
+      max-width: 980px;
+    }
+
+    @media(max-width:680px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .card {
-      background: #111827;
-      border: 1px solid #1e293b;
+      background: #0f1c2e;
+      border: 1px solid #1e3a5f;
       border-radius: 16px;
-      padding: 28px;
-      flex: 1;
-      min-width: 300px;
+      padding: 26px;
     }
 
-    .card h2 { font-size: 0.95rem; color: #94a3b8;
-               margin-bottom: 18px; letter-spacing: .05em; text-transform: uppercase; }
+    .card-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #475569;
+      margin-bottom: 18px;
+    }
 
-    /* Upload area */
-    .drop-zone {
+    .drop {
       border: 2px dashed #1e3a5f;
       border-radius: 12px;
-      padding: 28px 16px;
+      padding: 26px 12px;
       text-align: center;
       cursor: pointer;
       transition: all .2s;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
-    .drop-zone:hover { border-color: #38bdf8; background: #0c1f35; }
-    .drop-zone input { display: none; }
-    .drop-zone .hint { color: #475569; font-size: 0.85rem; margin-top: 6px; }
-    #preview { max-width: 100%; max-height: 200px; border-radius: 8px;
-               margin-top: 14px; display: none; object-fit: cover; }
+
+    .drop:hover {
+      border-color: #38bdf8;
+      background: #0a1929;
+    }
+
+    .drop input {
+      display: none;
+    }
+
+    .drop-icon {
+      font-size: 2rem;
+    }
+
+    .drop-text {
+      color: #475569;
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
+    #preview {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: none;
+      object-fit: cover;
+    }
 
     .btn {
-      width: 100%; padding: 13px;
-      background: #0ea5e9; color: #fff;
-      border: none; border-radius: 10px;
-      font-size: 1rem; cursor: pointer;
-      transition: background .2s;
+      width: 100%;
+      padding: 13px;
+      background: #0ea5e9;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.97rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .2s, transform .1s;
     }
-    .btn:hover    { background: #0284c7; }
-    .btn:disabled { background: #1e293b; color: #475569; cursor: not-allowed; }
 
-    /* Result box */
+    .btn:hover {
+      background: #0284c7;
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      background: #1e293b;
+      color: #334155;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     #resultBox {
-      margin-top: 20px; padding: 22px;
-      border-radius: 12px; text-align: center;
+      margin-top: 18px;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
       display: none;
-      border: 1px solid #1e293b;
-      transition: border-color .3s;
+      border: 1px solid #1e3a5f;
+      transition: border-color .4s;
+      animation: fadeIn .4s ease;
     }
-    .result-emoji { font-size: 2.8rem; }
-    .result-label { font-size: 1.6rem; font-weight: 700; margin: 8px 0 4px; }
-    .result-sub   { font-size: 0.78rem; color: #64748b; }
-    .best-tag     { display: inline-block; background: #0ea5e9; color: #fff;
-                    font-size: 0.72rem; padding: 2px 8px; border-radius: 999px;
-                    margin-top: 8px; }
-    .loader { text-align: center; color: #475569; margin-top: 14px; display: none; }
 
-    /* Table */
-    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .r-emoji {
+      font-size: 3rem;
+    }
+
+    .r-label {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 8px 0 3px;
+    }
+
+    .r-desc {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .r-badge {
+      display: inline-block;
+      background: #0ea5e9;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-top: 10px;
+    }
+
+    .loader {
+      text-align: center;
+      color: #475569;
+      margin-top: 14px;
+      display: none;
+      font-size: 0.88rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
     thead th {
-      text-align: left; padding: 8px 6px;
-      color: #475569; border-bottom: 1px solid #1e293b;
-      font-weight: 600; letter-spacing: .03em;
+      text-align: left;
+      padding: 8px 5px;
+      color: #334155;
+      border-bottom: 1px solid #1e293b;
+      font-weight: 600;
+      letter-spacing: .04em;
+      font-size: 0.72rem;
+      text-transform: uppercase;
     }
-    tbody tr { border-bottom: 1px solid #0f172a; transition: background .15s; }
-    tbody tr:hover { background: #0f172a; }
-    tbody td { padding: 9px 6px; }
-    tbody tr.best-row td { color: #38bdf8; font-weight: 600; }
+
+    tbody tr {
+      border-bottom: 1px solid #0f172a;
+      transition: background .15s;
+    }
+
+    tbody tr:hover {
+      background: #0a1929;
+    }
+
+    tbody td {
+      padding: 9px 5px;
+    }
+
+    tbody tr.best td {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
     .badge {
-      background: #0ea5e9; color: #fff;
-      font-size: 0.65rem; padding: 1px 6px;
-      border-radius: 999px; margin-left: 5px;
-      vertical-align: middle;
+      background: #0ea5e9;
+      color: #fff;
+      font-size: 0.62rem;
+      padding: 1px 6px;
+      border-radius: 999px;
+      margin-left: 5px;
     }
-    .empty-msg { color: #334155; font-size: 0.85rem; text-align: center; padding: 20px 0; }
+
+    .empty {
+      color: #1e3a5f;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 30px 0;
+    }
+
+    .bar-wrap {
+      background: #1e293b;
+      border-radius: 99px;
+      height: 5px;
+      width: 100%;
+      margin-top: 3px;
+    }
+
+    .bar-fill {
+      height: 5px;
+      border-radius: 99px;
+      background: #0ea5e9;
+    }
+
+    tr.best .bar-fill {
+      background: #22c55e;
+    }
   </style>
 </head>
+
 <body>
 
-<header>
-  <h1>🛰️ EuroSAT Land Use Classifier</h1>
-  <p>Upload a satellite image — ML model predicts the land cover type</p>
-</header>
+  <header>
+    <h1>🛰️ EuroSAT Land Use Classifier</h1>
+    <p>Machine Learning · PCA · 10 Land Cover Classes · 7 Models Compared</p>
+  </header>
 
-<div class="main">
+  <div class="grid">
 
-  <!-- LEFT: Upload & Result -->
-  <div class="card">
-    <h2>📤 Upload Image</h2>
+    <div class="card">
+      <div class="card-title">📤 Upload Satellite Image</div>
 
-    <div class="drop-zone" onclick="document.getElementById('fileIn').click()">
-      <input type="file" id="fileIn" accept="image/*" onchange="onFile(event)"/>
-      <div id="uploadIcon">🖼️</div>
-      <div id="uploadText" style="margin-top:8px;">Click to choose a satellite image</div>
-      <div class="hint">JPG / PNG / TIF supported</div>
-      <img id="preview" alt="Preview"/>
+      <div class="drop" onclick="document.getElementById('fileIn').click()">
+        <input type="file" id="fileIn" accept="image/*" onchange="onFile(event)" />
+        <div class="drop-icon">🖼️</div>
+        <div class="drop-text" id="dropText">Click to choose image (JPG / PNG)</div>
+        <img id="preview" alt="preview" />
+      </div>
+
+      <button class="btn" id="btn" onclick="predict()" disabled>
+        🔍 &nbsp;Classify Image
+      </button>
+      <div class="loader" id="loader">⏳ Analyzing satellite image...</div>
+
+      <div id="resultBox">
+        <div class="r-emoji" id="rEmoji">🌍</div>
+        <div class="r-label" id="rLabel">—</div>
+        <div class="r-desc" id="rDesc">Predicted Land Cover</div>
+        <div class="r-badge" id="rBadge"></div>
+      </div>
     </div>
 
-    <button class="btn" id="btn" onclick="predict()" disabled>
-      🔍 Classify Image
-    </button>
-
-    <div class="loader" id="loader">⏳ Analyzing satellite image...</div>
-
-    <div id="resultBox">
-      <div class="result-emoji" id="rEmoji">🌍</div>
-      <div class="result-label" id="rLabel">—</div>
-      <div class="result-sub">Predicted Land Cover Class</div>
-      <div class="best-tag" id="rBest"></div>
+    <div class="card">
+      <div class="card-title">📊 Model Comparison</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Acc %</th>
+            <th>F1 %</th>
+          </tr>
+        </thead>
+        <tbody id="modelBody">
+          <tr>
+            <td colspan="3" class="empty">
+              Run a prediction to see all 7 model results
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
   </div>
 
-  <!-- RIGHT: Model Comparison Table -->
-  <div class="card">
-    <h2>📊 Model Comparison</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Model</th>
-          <th>Acc</th>
-          <th>Prec</th>
-          <th>Recall</th>
-          <th>F1</th>
-        </tr>
-      </thead>
-      <tbody id="modelBody">
-        <tr><td colspan="5" class="empty-msg">Run a prediction to see results</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-</div>
-
-<script>
-  function onFile(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const prev = document.getElementById('preview');
-    prev.src = URL.createObjectURL(file);
-    prev.style.display = 'block';
-    document.getElementById('uploadText').textContent = file.name;
-    document.getElementById('btn').disabled = false;
-    document.getElementById('resultBox').style.display = 'none';
-  }
-
-  async function predict() {
-    const file = document.getElementById('fileIn').files[0];
-    if (!file) return;
-
-    document.getElementById('loader').style.display = 'block';
-    document.getElementById('btn').disabled = true;
-    document.getElementById('resultBox').style.display = 'none';
-
-    const form = new FormData();
-    form.append('image', file);
-
-    try {
-      const res  = await fetch('/predict', { method: 'POST', body: form });
-      const data = await res.json();
-
-      // Show result
-      document.getElementById('rEmoji').textContent = data.emoji;
-      document.getElementById('rLabel').textContent = data.prediction;
-      document.getElementById('rBest').textContent  = `Best Model: ${data.best_model}`;
-      const box = document.getElementById('resultBox');
-      box.style.display = 'block';
-      box.style.borderColor = data.color;
-
-      // Fill model table
-      const tbody = document.getElementById('modelBody');
-      tbody.innerHTML = '';
-      data.model_table.forEach(m => {
-        const tr = document.createElement('tr');
-        if (m.is_best) tr.className = 'best-row';
-        tr.innerHTML = `
-          <td>${m.name}${m.is_best ? '<span class="badge">Best</span>' : ''}</td>
-          <td>${(m.accuracy  * 100).toFixed(1)}%</td>
-          <td>${(m.precision * 100).toFixed(1)}%</td>
-          <td>${(m.recall    * 100).toFixed(1)}%</td>
-          <td>${(m.f1        * 100).toFixed(1)}%</td>`;
-        tbody.appendChild(tr);
-      });
-
-    } catch (err) {
-      alert("Error: " + err.message);
+  <script>
+    function onFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('preview').src = URL.createObjectURL(file);
+      document.getElementById('preview').style.display = 'block';
+      document.getElementById('dropText').textContent = file.name;
+      document.getElementById('btn').disabled = false;
+      document.getElementById('resultBox').style.display = 'none';
     }
 
-    document.getElementById('loader').style.display = 'none';
-    document.getElementById('btn').disabled = false;
-  }
-</script>
+    async function predict() {
+      const file = document.getElementById('fileIn').files[0];
+      if (!file) return;
 
+      document.getElementById('loader').style.display = 'block';
+      document.getElementById('btn').disabled = true;
+      document.getElementById('resultBox').style.display = 'none';
+
+      const form = new FormData();
+      form.append('image', file);
+
+      try {
+        const res = await fetch('/predict', { method: 'POST', body: form });
+        const data = await res.json();
+
+        if (data.error) { alert(data.error); return; }
+
+        document.getElementById('rEmoji').textContent = data.emoji;
+        document.getElementById('rLabel').textContent = data.prediction;
+        document.getElementById('rDesc').textContent = data.desc;
+        document.getElementById('rBadge').textContent = `Best model: ${data.best_model}`;
+        const box = document.getElementById('resultBox');
+        box.style.borderColor = data.color;
+        box.style.display = 'block';
+
+        const tbody = document.getElementById('modelBody');
+        tbody.innerHTML = '';
+        data.model_table.forEach(m => {
+          const tr = document.createElement('tr');
+          if (m.is_best) tr.className = 'best';
+          tr.innerHTML = `
+          <td>${m.name}${m.is_best
+              ? '<span class="badge">★ Best</span>' : ''}</td>
+          <td>
+            ${m.accuracy}%
+            <div class="bar-wrap">
+              <div class="bar-fill" style="width:${m.accuracy}%"></div>
+            </div>
+          </td>
+          <td>${m.f1}%</td>`;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        alert("Something went wrong: " + err.message);
+      } finally {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('btn').disabled = false;
+      }
+    }
+  </script>
 </body>
+
 </html>

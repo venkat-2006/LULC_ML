@@ -3,70 +3,112 @@ import os
 import cv2
 import numpy as np
 
-# ── CONFIG ────────────────────────────────────────────
 DATASET_PATH = "dataset"
-IMAGE_SIZE   = 64   # EuroSAT images are 64x64 natively
+IMAGE_SIZE   = 64
 CLASSES = [
     "AnnualCrop", "Forest", "HerbaceousVegetation", "Highway",
     "Industrial", "Pasture", "PermanentCrop", "Residential",
     "River", "SeaLake"
 ]
 
-# ── MAIN FUNCTION ─────────────────────────────────────
-def load_dataset():
-    features = []   # pixel arrays
-    labels   = []   # class names
-    skipped  = 0
+def extract_features(image):
+    features = []
 
-    print("=" * 50)
+    # ── 1. Color histograms (32 bins × 3 channels = 96) ──
+    for i in range(3):
+        hist = cv2.calcHist([image], [i], None, [32], [0, 256])
+        hist = cv2.normalize(hist, hist).flatten()
+        features.append(hist)
+
+    # ── 2. HSV histograms (better color discrimination) ──
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    for i in range(3):
+        bins = 32 if i == 0 else 16
+        hist = cv2.calcHist([hsv], [i], None, [bins], [0, 256])
+        hist = cv2.normalize(hist, hist).flatten()
+        features.append(hist)
+
+    # ── 3. Grayscale texture stats ──
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    features.append([
+        np.mean(gray),
+        np.std(gray),
+        np.mean(np.abs(np.diff(gray.astype(float)))),  # edge energy
+    ])
+
+    # ── 4. LBP-like texture (local binary pattern simplified) ──
+    gray_f = gray.astype(np.float32)
+    lbp    = np.zeros_like(gray_f)
+    for dy, dx in [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]:
+        shifted      = np.roll(np.roll(gray_f, dy, axis=0), dx, axis=1)
+        lbp         += (gray_f > shifted).astype(np.float32)
+    lbp_hist, _ = np.histogram(lbp, bins=9, range=(0, 9))
+    lbp_hist     = lbp_hist / (lbp_hist.sum() + 1e-6)
+    features.append(lbp_hist)
+
+    # ── 5. Sobel edge histogram ──
+    sobelx    = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+    sobely    = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+    magnitude = np.sqrt(sobelx**2 + sobely**2)
+    edge_hist, _ = np.histogram(magnitude, bins=16, range=(0, 300))
+    edge_hist     = edge_hist / (edge_hist.sum() + 1e-6)
+    features.append(edge_hist)
+
+    # ── 6. Flattened resized image (spatial info) ──
+    small = cv2.resize(image, (16, 16)) / 255.0
+    features.append(small.flatten())   # 16×16×3 = 768
+
+    return np.concatenate([np.array(f).flatten() for f in features])
+
+
+def load_dataset():
+    feature_list = []
+    labels       = []
+    skipped      = 0
+
+    print("=" * 52)
     print("  Loading EuroSAT Dataset")
-    print("=" * 50)
+    print("=" * 52)
 
     for class_name in CLASSES:
         class_folder = os.path.join(DATASET_PATH, class_name)
 
         if not os.path.exists(class_folder):
-            print(f"  ⚠️  Missing folder: {class_name}")
+            print(f"  WARNING: {class_name} folder missing")
             continue
 
-        image_files = os.listdir(class_folder)
+        files  = os.listdir(class_folder)
         loaded = 0
 
-        for img_file in image_files:
-            img_path = os.path.join(class_folder, img_file)
+        for fname in files:
+            fpath = os.path.join(class_folder, fname)
+            image = cv2.imread(fpath)
 
-            # Step 1: Read image
-            image = cv2.imread(img_path)
             if image is None:
                 skipped += 1
                 continue
 
-            # Step 2: Resize to 64×64
             image = cv2.resize(image, (IMAGE_SIZE, IMAGE_SIZE))
+            feat  = extract_features(image)
 
-            # Step 3: Normalize 0–255 → 0.0–1.0
-            image = image / 255.0
-
-            # Step 4: Flatten → 64×64×3 = 12,288 values
-            flat = image.flatten()
-
-            features.append(flat)
+            feature_list.append(feat)
             labels.append(class_name)
             loaded += 1
 
-        print(f"  ✅ {class_name:<25}: {loaded} images loaded")
+        print(f"  {class_name:<28}: {loaded} images")
 
-    features = np.array(features)   # shape: (N, 12288)
-    labels   = np.array(labels)     # shape: (N,)
+    X = np.array(feature_list)
+    y = np.array(labels)
 
-    print("\n" + "=" * 50)
-    print(f"  Feature matrix : {features.shape}")
-    print(f"  Labels array   : {labels.shape}")
-    print(f"  Skipped        : {skipped} corrupt images")
-    print("=" * 50)
+    print("=" * 52)
+    print(f"  Total images   : {X.shape[0]}")
+    print(f"  Feature size   : {X.shape[1]}")
+    print(f"  Skipped        : {skipped}")
+    print("=" * 52)
 
-    return features, labels
+    return X, y
 
-# ── TEST RUN ──────────────────────────────────────────
+
 if __name__ == "__main__":
     X, y = load_dataset()
+    print(f"\nSample feature vector size: {X.shape[1]}")
