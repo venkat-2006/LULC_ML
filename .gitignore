@@ -1,0 +1,7 @@
+*.tif
+*.jpg
+*.png
+*.pkl
+EuroSAT/
+data/
+__pycache__/
