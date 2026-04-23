@@ -137,12 +137,27 @@
     }
 
     /* ─── CARD ─── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 26px;
-    }
+   .card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+thead th {
+  padding: 10px 14px;
+}
+
+tbody td {
+  padding: 12px 14px;
+}
+#resultBox {
+  margin-top: 20px;
+}
+
+#top3Box, #modelsBox {
+  margin-top: 20px;
+}
     .card-header {
       display: flex;
       align-items: center;
@@ -331,7 +346,10 @@
     }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: rgba(56,189,248,0.04); }
-    tbody td { padding: 10px 10px; vertical-align: middle; }
+    tbody td {
+  padding: 12px 14px;
+  vertical-align: middle;
+}
     tbody td:not(:first-child) { text-align: right; }
     tbody tr.best-row td { color: var(--green); }
     tbody tr.best-row td:first-child { font-weight: 700; }
@@ -524,6 +542,14 @@
     }
     .conf-label { font-size: 0.75rem; color: var(--text3); }
     .conf-label strong { display: block; font-size: 1rem; color: var(--text); }
+    #warningBox,
+#rawBox,
+#featureInfo,
+#finalInsight {
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
   </style>
 </head>
 <body>
@@ -559,114 +585,158 @@
     </div>
   </div>
 
-  <!-- MAIN GRID -->
-  <div class="main-grid">
+<!-- MAIN GRID -->
+<div class="main-grid">
 
-    <div class="card">
-  <div class="card-header">
-    <div class="card-icon blue">📤</div>
-    <div>
-      <div class="card-title">Upload Satellite Image</div>
-      <div class="card-sub">JPG or PNG, any size</div>
-    </div>
-  </div>
+  <!-- 🔵 LEFT SIDE -->
+  <div class="card">
 
-  <!-- Upload -->
-  <div class="drop-zone" onclick="document.getElementById('fileIn').click()">
-    <input type="file" id="fileIn" accept="image/*" onchange="onFile(event)" />
-    <div class="drop-icon-wrap">🖼️</div>
-    <div class="drop-main-text" id="dropMainText">Drop image here or click to browse</div>
-    <div class="drop-sub-text" id="dropSubText">Supports JPG, PNG, TIF</div>
-    <img id="preview" alt="Uploaded satellite image preview" />
-  </div>
-
-  <!-- Button -->
-  <button class="btn-classify" id="btn" onclick="predict()" disabled>
-    <span>🔍</span> Classify Image
-  </button>
-
-  <!-- Loader -->
-  <div class="loader" id="loader">
-    <div class="loader-dots"><span></span><span></span><span></span></div>
-    <div class="loader-text">Analyzing satellite image with all 7 models…</div>
-  </div>
-
-  <!-- Result -->
-  <div id="resultBox">
-    <div class="result-header">
-      <div class="r-emoji" id="rEmoji">🌍</div>
-      <div class="r-label" id="rLabel">—</div>
-      <div class="r-desc" id="rDesc">Predicted Land Cover</div>
-    </div>
-
-    <div class="result-meta">
-      <div class="meta-item">
-        <div class="meta-val" id="rConf">—</div>
-        <div class="meta-lbl">Confidence</div>
-      </div>
-
-      <div class="meta-item">
-        <div class="meta-val" id="rModels">7</div>
-        <div class="meta-lbl">Models Run</div>
-      </div>
-
-      <div class="meta-item">
-        <div class="meta-val" id="rAgree">—</div>
-        <div class="meta-lbl">Agreement</div>
+    <div class="card-header">
+      <div class="card-icon blue">📤</div>
+      <div>
+        <div class="card-title">Upload Satellite Image</div>
+        <div class="card-sub">JPG or PNG, any size</div>
       </div>
     </div>
 
-    <div class="r-best-badge" id="rBestBadge">—</div>
+    <!-- Upload -->
+    <div class="drop-zone" onclick="document.getElementById('fileIn').click()">
+      <input type="file" id="fileIn" accept="image/*" onchange="onFile(event)" />
+      <div class="drop-icon-wrap">🖼️</div>
+      <div class="drop-main-text" id="dropMainText">Drop image here or click to browse</div>
+      <div class="drop-sub-text" id="dropSubText">Supports JPG, PNG, TIF</div>
+      <img id="preview" alt="Uploaded satellite image preview" />
+    </div>
+
+    <!-- Button -->
+    <button class="btn-classify" id="btn" onclick="predict()" disabled>
+      <span>🔍</span> Classify Image
+    </button>
+
+    <!-- Loader -->
+    <div class="loader" id="loader">
+      <div class="loader-dots"><span></span><span></span><span></span></div>
+      <div class="loader-text">Analyzing satellite image with all 7 models…</div>
+    </div>
+
+    <!-- Result -->
+    <div id="resultBox">
+      <div class="result-header">
+        <div class="r-emoji" id="rEmoji">🌍</div>
+        <div class="r-label" id="rLabel">—</div>
+        <div class="r-desc" id="rDesc">Predicted Land Cover</div>
+      </div>
+
+      <div class="result-meta">
+        <div class="meta-item">
+          <div class="meta-val" id="rConf">—</div>
+          <div class="meta-lbl">Confidence</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-val" id="rModels">7</div>
+          <div class="meta-lbl">Models Run</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-val" id="rAgree">—</div>
+          <div class="meta-lbl">Agreement</div>
+        </div>
+      </div>
+
+      <div class="r-best-badge" id="rBestBadge">—</div>
+    </div>
+
+    <!-- 🚨 WARNING -->
+    <div id="warningBox" style="
+      display:none;
+      margin-top:12px;
+      padding:12px;
+      border-radius:10px;
+      background: rgba(251,113,133,0.1);
+      border:1px solid rgba(251,113,133,0.3);
+      color:#fb7185;
+      font-size:0.8rem;
+    "></div>
+
+    <!-- 🧠 RAW -->
+    <div id="rawBox" style="
+      font-size:0.75rem;
+      color:#94a3b8;
+      text-align:center;
+      margin-top:8px;
+    "></div>
+
+    <!-- ⚙️ FEATURE -->
+    <div id="featureInfo" style="
+      font-size:0.7rem;
+      color:#64748b;
+      text-align:center;
+      margin-top:6px;
+    "></div>
+
+    <!-- 🧠 FINAL INSIGHT -->
+    <div id="finalInsight" style="
+      margin-top:10px;
+      font-size:0.8rem;
+      color:#94a3b8;
+      text-align:center;
+    "></div>
+    
   </div>
 
-  <!-- 🔥 TOP 3 -->
-  <div class="card" id="top3Box" style="display:none; margin-top:15px;">
-    <div class="card-title">🏆 Top 3 Predictions</div>
-    <div id="top3"></div>
-  </div>
+  <!-- 🟣 RIGHT SIDE -->
+  <div class="card">
 
-  <!-- 🤖 MODEL PREDICTIONS -->
-  <div class="card" id="modelsBox" style="margin-top:15px; display:none;">
-    <div class="card-title">🤖 Model Predictions</div>
-    <div id="modelsList"></div>
+    <!-- 📊 Model Comparison -->
+    <div class="card-header">
+      <div class="card-icon purple">📊</div>
+      <div>
+        <div class="card-title">Model Comparison</div>
+        <div class="card-sub">Accuracy & F1 across all 7 models</div>
+      </div>
+    </div>
+
+    <div class="model-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Score ⭐</th> 
+            <th>Acc %</th>
+            <th>F1 %</th>
+            <th>Prec %</th>
+            <th>Recall %</th>
+          </tr>
+        </thead>
+        <tbody id="modelBody">
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <div class="empty-icon">📈</div>
+                <div>Run a prediction to see<br>all 7 model results here</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 🏆 TOP 3 -->
+    <div class="card" id="top3Box" style="display:none; margin-top:20px;">
+      <div class="card-title">🏆 Top 3 Predictions</div>
+      <div id="top3"></div>
+    </div>
+
+    <!-- 🤖 MODEL PREDICTIONS -->
+    <div class="card" id="modelsBox" style="display:none; margin-top:20px;">
+      <div class="card-title">🤖 Model Predictions</div>
+      <div id="modelsList"></div>
+    </div>
+
   </div>
 
 </div>
-    <!-- RIGHT: Model Comparison -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon purple">📊</div>
-        <div>
-          <div class="card-title">Model Comparison</div>
-          <div class="card-sub">Accuracy &amp; F1 across all 7 models</div>
-        </div>
-      </div>
-      <div class="model-table-wrap">
-        <table>
-          <thead>
-            <tr>
-             <th>Model</th>
-<th>Acc %</th>
-<th>F1 %</th>
-<th>Prec %</th>
-<th>Recall %</th>
-            </tr>
-          </thead>
-          <tbody id="modelBody">
-            <tr>
-             <td colspan="5">
-                <div class="empty-state">
-                  <div class="empty-icon">📈</div>
-                  <div>Run a prediction to see<br>all 7 model results here</div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
 
   <!-- LAND COVER CLASSES -->
   <div class="card" style="width:100%;max-width:980px;margin-top:20px;">
@@ -821,15 +891,42 @@
       try {
         const res  = await fetch('/predict', { method: 'POST', body: form });
         const data = await res.json();
+        
+
         // ✅ NOW data is available
 if (data.model_predictions) {
   document.getElementById('modelsBox').style.display = 'block';
 
-  let modelsHTML = '';
+  const preds = Object.values(data.model_predictions);
+  const okCount = preds.filter(v => v === data.raw_prediction).length;
+let modelsHTML = `
+  <div style="
+    margin-bottom:12px;
+    padding:10px;
+    border-radius:10px;
+    background: rgba(56,189,248,0.08);
+    text-align:center;
+    font-size:0.8rem;
+  ">
+    Agreement: <strong>${okCount}/${preds.length}</strong>
+  </div>
+`;
+
   for (let m in data.model_predictions) {
     const pred = data.model_predictions[m];
-    const ok = pred === data.prediction ? "✅" : "⚠️";
-    modelsHTML += `<div>${m} → ${pred} ${ok}</div>`;
+    const ok = pred === data.raw_prediction ? "✅" : "⚠️";
+   modelsHTML += `
+  <div style="
+    display:flex;
+    justify-content:space-between;
+    padding:10px 6px;
+    border-bottom:1px solid rgba(26,48,80,0.4);
+    font-size:0.8rem;
+  ">
+    <span>${m}</span>
+    <span>${pred} ${ok}</span>
+  </div>
+`;
   }
 
   document.getElementById('modelsList').innerHTML = modelsHTML;
@@ -840,34 +937,98 @@ if (data.model_predictions) {
         document.getElementById('rEmoji').textContent = data.emoji || '🌍';
         document.getElementById('rLabel').textContent = data.prediction || '—';
         document.getElementById('rDesc').textContent  = data.desc || 'Predicted Land Cover';
-        document.getElementById('rConf').textContent  = data.confidence ? data.confidence + '%' : '—';
+        let confText = "";
+if (data.confidence >= 85) confText = "Very High";
+else if (data.confidence >= 70) confText = "High";
+else if (data.confidence >= 60) confText = "Moderate";
+else confText = "Low";
+
+document.getElementById('rConf').textContent =
+  `${data.confidence}% (${confText})`;
         document.getElementById('rModels').textContent = '7';
         document.getElementById('rBestBadge').innerHTML =
           `Best model: <strong>${data.best_model || '—'}</strong>`;
-          document.getElementById('rAgree').textContent =
-  data.agreement ? data.agreement + "%" : "-";
+          let agreeText = data.agreement + "%";
+
+if (data.agreement > 80) agreeText += " (Strong)";
+else if (data.agreement > 60) agreeText += " (Moderate)";
+else agreeText += " (Weak)";
+
+document.getElementById('rAgree').textContent = agreeText;
+if (data.is_uncertain) {
+  document.getElementById("warningBox").style.display = "block";
+document.getElementById("warningBox").innerHTML = `
+  <strong>⚠️ Prediction Rejected</strong><br><br>
+  ${data.warning.replace(/\n/g, "<br>")}
+`;
+} else {
+  document.getElementById("warningBox").style.display = "none";
+}
+if (data.is_uncertain) {
+  document.getElementById("rawBox").innerText =
+    `Model predicted: ${data.raw_prediction} (low confidence)`;
+} else {
+  document.getElementById("rawBox").innerText = "";
+}
+document.getElementById("featureInfo").innerText =
+  `PCA Features: ${data.feature_size}`;
+  // 🧠 FINAL INSIGHT
+let insight = "";
+
+if (data.is_uncertain) {
+  insight = "Model is not confident — input may not match EuroSAT data.";
+} else if (data.agreement > 80) {
+  insight = "High confidence with strong model agreement.";
+} else if (data.agreement > 60) {
+  insight = "Moderate confidence — some disagreement.";
+} else {
+  insight = "Low agreement — prediction may be unreliable.";
+}
+
+const insightEl = document.getElementById("finalInsight");
+insightEl.innerText = insight;
+
+// 🎨 Color coding
+if (data.is_uncertain) {
+  insightEl.style.color = "#fb7185";
+} else if (data.agreement > 80) {
+  insightEl.style.color = "#22c55e";
+} else if (data.agreement > 60) {
+  insightEl.style.color = "#fbbf24";
+} else {
+  insightEl.style.color = "#f97316";
+}
 
         const box = document.getElementById('resultBox');
         box.style.display = 'block';
         // Top 3 predictions
 if (data.top3) {
   document.getElementById('top3Box').style.display = 'block';
+let top3HTML = '';
 
-  let top3HTML = '';
-  data.top3.forEach(t => {
-    top3HTML += `
-      <div style="margin-bottom:10px;">
-        <strong>${t.label}</strong> (${t.confidence}%)
-        <div class="bar-wrap">
-          <div class="bar-fill" style="width:${t.confidence}%"></div>
-        </div>
+data.top3.forEach((t, i) => {
+  const badge = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
+
+  top3HTML += `
+    <div style="margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+        <strong>${badge} ${t.label}</strong>
+        <span>${t.confidence}%</span>
       </div>
-    `;
-  });
+      <div class="bar-wrap" style="margin-top:6px;">
+        <div class="bar-fill" style="width:${t.confidence}%"></div>
+      </div>
+    </div>
+  `;
+});
 
   document.getElementById('top3').innerHTML = top3HTML;
 }
-        box.style.borderColor = data.color || 'var(--border)';
+       if (data.is_uncertain) {
+  box.style.borderColor = "#fb7185"; // red
+} else {
+  box.style.borderColor = data.color || 'var(--border)';
+}
 
         // Highlight matching class pill
         const idx = CLASSES.findIndex(c =>
@@ -884,19 +1045,31 @@ if (data.top3) {
           if (m.is_best) tr.className = 'best-row';
           const bestTag = m.is_best ? '<span class="best-tag">★ Best</span>' : '';
           tr.innerHTML = `
-            <td>
-              <div class="model-name-wrap">
-                <div class="model-dot"></div>
-                <span>${m.name}${bestTag}</span>
-              </div>
-            </td>
-            <td>
-              <div>${m.accuracy}%</div>
-              <div class="bar-wrap"><div class="bar-fill" style="width:${m.accuracy}%"></div></div>
-            </td>
-            <td>${m.f1 !== undefined ? m.f1 + '%' : '—'}</td>
-<td>${m.precision !== undefined ? m.precision + '%' : '—'}</td>
-<td>${m.recall !== undefined ? m.recall + '%' : '—'}</td>`;
+  <td>
+    <div class="model-name-wrap">
+      <div class="model-dot"></div>
+      <span>${m.name}${bestTag}</span>
+    </div>
+  </td>
+
+  <!-- ⭐ SCORE COLUMN -->
+  <td style="font-weight:700; color:${m.is_best ? '#22c55e' : '#38bdf8'};">
+    ${m.score}%
+  </td>
+
+  <!-- ACCURACY -->
+  <td>
+    <div>${m.accuracy}%</div>
+    <div class="bar-wrap">
+      <div class="bar-fill" style="width:${m.accuracy}%"></div>
+    </div>
+  </td>
+
+  <!-- OTHER METRICS -->
+  <td>${m.f1 !== undefined ? m.f1 + '%' : '—'}</td>
+  <td>${m.precision !== undefined ? m.precision + '%' : '—'}</td>
+  <td>${m.recall !== undefined ? m.recall + '%' : '—'}</td>
+`;
           tbody.appendChild(tr);
         });
 
@@ -943,8 +1116,8 @@ if (data.top3) {
   }
 
   const form = new FormData();
-  form.append("img1", f1);
-  form.append("img2", f2);
+  form.append("image1", f1);
+form.append("image2", f2);
 
   const res = await fetch("/compare", {
     method: "POST",
@@ -953,8 +1126,18 @@ if (data.top3) {
 
   const data = await res.json();
 
-  document.getElementById("changeResult").innerHTML =
-    `<strong>${data.pred1}</strong> → <strong>${data.pred2}</strong><br>${data.message}`;
+document.getElementById("changeResult").innerHTML = `
+  <div style="
+    padding:12px;
+    border-radius:10px;
+    background: rgba(56,189,248,0.08);
+    font-size:0.85rem;
+  ">
+    <strong>${data.image1}</strong> → <strong>${data.image2}</strong><br><br>
+    ${data.change}<br>
+    <span style="color:#94a3b8;">${data.impact}</span>
+  </div>
+`;
 }
   </script>
 </body>

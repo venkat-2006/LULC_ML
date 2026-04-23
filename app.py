@@ -219,6 +219,8 @@ def index():
 
 # ─────────────────────────────────────────
 # 🔥 PREDICT ROUTE
+## ─────────────────────────────────────────
+# 🔥 PREDICT ROUTE (FINAL CLEAN VERSION)
 # ─────────────────────────────────────────
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -231,7 +233,6 @@ def predict():
 
     os.makedirs("uploads", exist_ok=True)
 
-    # ✅ safe filename
     filename = str(uuid.uuid4()) + ".jpg"
     save_path = os.path.join("uploads", filename)
     file.save(save_path)
@@ -240,45 +241,66 @@ def predict():
         # 🔹 Preprocess
         features = preprocess_image(save_path)
 
-        # 🔥 Best model prediction
+        # 🔥 Prediction
         probs = model.predict_proba(features)[0]
-        pred_code  = np.argmax(probs)
-        pred_label = le.inverse_transform([pred_code])[0]
-        confidence = round(probs[pred_code] * 100, 2)
+        pred_code = int(np.argmax(probs))
+
+        raw_label  = le.inverse_transform([pred_code])[0]
+        confidence = round(float(probs[pred_code]) * 100, 2)
+
+        # 🔥 CONFIDENCE THRESHOLD
+        CONF_THRESHOLD = 60
+        is_uncertain = False
+        warning_msg  = ""
+
+        if confidence < CONF_THRESHOLD:
+            is_uncertain = True
+            pred_label   = "Rejected (Out of Distribution)"
+
+            warning_msg = (
+                "⚠️ Image does not match training data (EuroSAT).\n"
+                "Possible reasons:\n"
+                "- Different satellite source\n"
+                "- Different zoom level\n"
+                "- Different lighting\n"
+                "- Not a satellite patch"
+            )
+        else:
+            pred_label = raw_label
 
         # 🔥 Top 3 predictions
         top3_idx = np.argsort(probs)[-3:][::-1]
         top3 = []
         for i in top3_idx:
-            label = le.inverse_transform([i])[0]
+            label = le.inverse_transform([int(i)])[0]
             top3.append({
                 "label": label,
-                "confidence": round(probs[i] * 100, 2)
+                "confidence": round(float(probs[i]) * 100, 2)
             })
 
         # 🔥 All model predictions
         model_predictions = {}
         for name, m in ALL_MODELS.items():
             try:
-                pred = m.predict(features)[0]
+                pred = int(m.predict(features)[0])
                 label = le.inverse_transform([pred])[0]
                 model_predictions[name] = label
             except Exception:
                 model_predictions[name] = "N/A"
 
-        # 🔥 Agreement %
+        # 🔥 Agreement
         pred_values = list(model_predictions.values())
         valid_preds = [p for p in pred_values if p != "N/A"]
 
         if len(valid_preds) > 0:
-            agreement = valid_preds.count(pred_label) / len(valid_preds)
+            agreement = valid_preds.count(raw_label) / len(valid_preds)
         else:
             agreement = 0
 
         agreement = round(agreement * 100, 2)
 
         # 🔹 Class info
-        key = pred_label.lower().replace(" ", "")
+        key = raw_label.lower().replace(" ", "")
         info = CLASS_INFO.get(
             key,
             {"emoji": "🌍", "color": "#38bdf8", "desc": "Land cover"}
@@ -291,25 +313,39 @@ def predict():
         if os.path.exists(save_path):
             os.remove(save_path)
 
-    # 🔹 Model table
+    # 🔥 Model table with SCORE (FINAL FIX)
     model_table = sorted(
         [{
             "name": name,
+
+            # ⭐ Weighted Score (same as training)
+            "score": round((
+                0.4 * r["accuracy"] +
+                0.3 * r["precision"] +
+                0.2 * r["recall"] +
+                0.1 * r["f1"]
+            ) * 100, 1),
+
             "accuracy": round(r["accuracy"] * 100, 1),
             "precision": round(r["precision"] * 100, 1),
             "recall": round(r["recall"] * 100, 1),
             "f1": round(r["f1"] * 100, 1),
+
             "is_best": (name == best_name)
         } for name, r in results.items()],
-        key=lambda x: x["accuracy"],
+
+        key=lambda x: x["score"],   # 🔥 SORT BY SCORE
         reverse=True
     )
 
     # 🔥 Final response
     return jsonify({
         "prediction": pred_label,
+        "raw_prediction": raw_label,
         "confidence": confidence,
         "confidence_raw": float(probs[pred_code]),
+        "is_uncertain": is_uncertain,
+        "warning": warning_msg,
         "top3": top3,
         "agreement": agreement,
         "model_predictions": dict(sorted(model_predictions.items())),
@@ -321,7 +357,6 @@ def predict():
         "total_models": len(results),
         "feature_size": int(pca.n_components_),
     })
-
 
 # ─────────────────────────────────────────
 # 🔥 CHANGE DETECTION
