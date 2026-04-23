@@ -5,3 +5,6 @@
 EuroSAT/
 data/
 __pycache__/
+
+dataset/
+uploads/
