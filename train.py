@@ -308,6 +308,38 @@ from sklearn.metrics import (accuracy_score, precision_score,
                              recall_score, f1_score, confusion_matrix)
 from preprocess import load_dataset
 
+
+# ─────────────────────────────────────────
+# 🔥 CLEAN OLD FILES BEFORE TRAINING
+# ─────────────────────────────────────────
+import os
+
+FILES_TO_DELETE = [
+    "scaler.pkl",
+    "pca_model.pkl",
+    "label_encoder.pkl",
+    "lulc_best_model.pkl",
+    "all_results.pkl",
+    "best_model_name.pkl",
+    "model_comparison.png",
+    "confusion_matrix.png",
+    "decision_tree.pkl",
+    "naive_bayes.pkl",
+    "logistic_regression.pkl",
+    "knn.pkl",
+    "svm.pkl",
+    "gradient_boosting.pkl",
+    "random_forest.pkl",
+]
+
+print("\n🧹 Cleaning old model files...")
+
+for file in FILES_TO_DELETE:
+    if os.path.exists(file):
+        os.remove(file)
+        print(f"  🗑️ Deleted {file}")
+
+print("✅ Cleanup complete\n")
 # ═══════════════════════════════════════════════
 # CONFIG
 # ═══════════════════════════════════════════════
@@ -399,6 +431,11 @@ models = {
                            solver       = 'saga', # fastest for large data
                            n_jobs       = -1,     # all CPU cores
                            random_state = 42),
+    #                        "Logistic Regression": LogisticRegression(
+    # max_iter     = 300,
+    # C            = 1.0,
+    # solver       = 'saga',
+    # random_state = 42),
 
     "KNN"                : KNeighborsClassifier(
                                n_neighbors  = 7,
@@ -520,14 +557,28 @@ print(f"  🏆 F1 Score      : {results[best_name]['f1']*100:.2f}%")
 # ═══════════════════════════════════════════════
 # STEP 9 — Save All Files
 # ═══════════════════════════════════════════════
+
+# ✅ Save BEST model (unchanged)
 joblib.dump(trained[best_name]["model"], "lulc_best_model.pkl")
-joblib.dump(results,                     "all_results.pkl")
-joblib.dump(best_name,                   "best_model_name.pkl")
+
+# ✅ Save results + best model name
+joblib.dump(results,   "all_results.pkl")
+joblib.dump(best_name, "best_model_name.pkl")
 
 print(f"\n  ✅ lulc_best_model.pkl  saved")
 print(f"  ✅ all_results.pkl      saved")
 print(f"  ✅ best_model_name.pkl  saved")
 
+
+# 🔥 NEW — Save ALL MODELS (for comparison in app)
+print("\n  🔄 Saving all individual models...")
+
+for name, data in trained.items():
+    filename = name.replace(" ", "_").lower() + ".pkl"
+    joblib.dump(data["model"], filename)
+    print(f"  ✅ {filename:<30} saved")
+
+print("\n  🎯 All models saved successfully!")
 # ═══════════════════════════════════════════════
 # STEP 10 — Bar Chart
 # ═══════════════════════════════════════════════
