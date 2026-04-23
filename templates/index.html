@@ -1,48 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EuroSAT LULC Classifier</title>
   <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #070e1c;
+      --surface: #0d1b2e;
+      --surface2: #0a1525;
+      --border: #1a3050;
+      --border2: #203a5a;
+      --accent: #38bdf8;
+      --accent2: #0ea5e9;
+      --accent3: #0284c7;
+      --green: #22c55e;
+      --green2: #16a34a;
+      --muted: #475569;
+      --muted2: #334155;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --purple: #a78bfa;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --teal: #2dd4bf;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #060d1a;
-      color: #e2e8f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 30px 16px;
+      padding: 36px 16px 60px;
+      background-image: radial-gradient(ellipse at 20% 10%, rgba(56,189,248,0.04) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.04) 0%, transparent 50%);
     }
 
+    /* ─── HEADER ─── */
     header {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 36px;
+      max-width: 700px;
     }
-
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56,189,248,0.1);
+      border: 1px solid rgba(56,189,248,0.25);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
     header h1 {
-      font-size: 1.9rem;
-      color: #38bdf8;
-      letter-spacing: -.01em;
+      font-size: 2.1rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e2e8f0 30%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -.02em;
+      line-height: 1.2;
     }
-
     header p {
-      color: #475569;
-      margin-top: 6px;
-      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 10px;
+      font-size: 0.87rem;
+      line-height: 1.6;
     }
 
-    .grid {
+    /* ─── STAT STRIP ─── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 980px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      border-radius: 3px 0 0 3px;
+    }
+    .stat-card.blue::before  { background: var(--accent); }
+    .stat-card.green::before { background: var(--green); }
+    .stat-card.purple::before{ background: var(--purple); }
+    .stat-card.amber::before { background: var(--amber); }
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text3);
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-sub {
+      font-size: 0.72rem;
+      color: var(--text3);
+      margin-top: 4px;
+    }
+
+    /* ─── MAIN GRID ─── */
+    .main-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
@@ -50,278 +136,672 @@
       max-width: 980px;
     }
 
-    @media(max-width:680px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
+    /* ─── CARD ─── */
     .card {
-      background: #0f1c2e;
-      border: 1px solid #1e3a5f;
-      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
       padding: 26px;
     }
-
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .card-icon {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .card-icon.blue   { background: rgba(56,189,248,0.12); }
+    .card-icon.green  { background: rgba(34,197,94,0.12); }
+    .card-icon.purple { background: rgba(167,139,250,0.12); }
     .card-title {
-      font-size: 0.78rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text2);
       text-transform: uppercase;
-      letter-spacing: .08em;
-      color: #475569;
-      margin-bottom: 18px;
+      letter-spacing: .07em;
+    }
+    .card-sub {
+      font-size: 0.73rem;
+      color: var(--text3);
+      margin-top: 1px;
     }
 
-    .drop {
-      border: 2px dashed #1e3a5f;
-      border-radius: 12px;
-      padding: 26px 12px;
+    /* ─── DROP ZONE ─── */
+    .drop-zone {
+      border: 2px dashed var(--border2);
+      border-radius: 14px;
+      padding: 30px 16px;
       text-align: center;
       cursor: pointer;
       transition: all .2s;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
+      position: relative;
+      background: var(--surface2);
     }
-
-    .drop:hover {
-      border-color: #38bdf8;
-      background: #0a1929;
+    .drop-zone:hover { border-color: var(--accent); background: rgba(56,189,248,0.04); }
+    .drop-zone input { display: none; }
+    .drop-icon-wrap {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: rgba(56,189,248,0.1);
+      border: 1px solid rgba(56,189,248,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin: 0 auto 12px;
     }
-
-    .drop input {
-      display: none;
+    .drop-main-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
     }
-
-    .drop-icon {
-      font-size: 2rem;
-    }
-
-    .drop-text {
-      color: #475569;
-      font-size: 0.85rem;
-      margin-top: 6px;
-    }
-
+    .drop-sub-text { color: var(--text3); font-size: 0.78rem; }
     #preview {
       max-width: 100%;
-      max-height: 180px;
-      border-radius: 8px;
-      margin-top: 12px;
-      display: none;
-      object-fit: cover;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 13px;
-      background: #0ea5e9;
-      color: #fff;
-      border: none;
+      max-height: 200px;
       border-radius: 10px;
-      font-size: 0.97rem;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background .2s, transform .1s;
-    }
-
-    .btn:hover {
-      background: #0284c7;
-      transform: translateY(-1px);
-    }
-
-    .btn:disabled {
-      background: #1e293b;
-      color: #334155;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    #resultBox {
-      margin-top: 18px;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      display: none;
-      border: 1px solid #1e3a5f;
-      transition: border-color .4s;
-      animation: fadeIn .4s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .r-emoji {
-      font-size: 3rem;
-    }
-
-    .r-label {
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin: 8px 0 3px;
-    }
-
-    .r-desc {
-      font-size: 0.8rem;
-      color: #64748b;
-    }
-
-    .r-badge {
-      display: inline-block;
-      background: #0ea5e9;
-      color: #fff;
-      font-size: 0.7rem;
-      padding: 3px 10px;
-      border-radius: 999px;
-      margin-top: 10px;
-    }
-
-    .loader {
-      text-align: center;
-      color: #475569;
       margin-top: 14px;
       display: none;
-      font-size: 0.88rem;
+      object-fit: cover;
+      width: 100%;
+      border: 1px solid var(--border);
     }
 
+    /* ─── CLASSIFY BTN ─── */
+    .btn-classify {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all .2s;
+      letter-spacing: .01em;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-classify:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(14,165,233,0.3);
+    }
+    .btn-classify:disabled {
+      background: var(--surface2);
+      color: var(--muted2);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ─── LOADER ─── */
+    .loader { display: none; text-align: center; padding: 16px 0; }
+    .loader-dots {
+      display: inline-flex; gap: 6px;
+    }
+    .loader-dots span {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: bounce 1.2s ease-in-out infinite;
+    }
+    .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: .4; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
+    .loader-text { font-size: 0.82rem; color: var(--text3); margin-top: 8px; }
+
+    /* ─── RESULT BOX ─── */
+    #resultBox {
+      display: none;
+      margin-top: 18px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      animation: fadeUp .4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .result-header {
+      padding: 18px 20px 14px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .r-emoji { font-size: 2.8rem; line-height: 1; }
+    .r-label {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 8px 0 4px;
+      color: var(--text);
+    }
+    .r-desc { font-size: 0.78rem; color: var(--text3); }
+    .result-meta {
+      padding: 14px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .meta-item { text-align: center; }
+    .meta-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .meta-lbl { font-size: 0.7rem; color: var(--text3); margin-top: 2px; }
+    .r-best-badge {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--text3);
+      text-align: center;
+    }
+    .r-best-badge strong { color: var(--green); }
+
+    /* ─── MODEL TABLE ─── */
+    .model-table-wrap { overflow: visible; }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.8rem;
     }
-
     thead th {
       text-align: left;
-      padding: 8px 5px;
-      color: #334155;
-      border-bottom: 1px solid #1e293b;
+      padding: 8px 10px;
+      color: var(--text3);
+      border-bottom: 1px solid var(--border);
       font-weight: 600;
-      letter-spacing: .04em;
-      font-size: 0.72rem;
+      letter-spacing: .05em;
+      font-size: 0.69rem;
       text-transform: uppercase;
     }
-
+    thead th:not(:first-child) { text-align: right; }
     tbody tr {
-      border-bottom: 1px solid #0f172a;
+      border-bottom: 1px solid rgba(26,48,80,0.6);
       transition: background .15s;
     }
-
-    tbody tr:hover {
-      background: #0a1929;
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(56,189,248,0.04); }
+    tbody td { padding: 10px 10px; vertical-align: middle; }
+    tbody td:not(:first-child) { text-align: right; }
+    tbody tr.best-row td { color: var(--green); }
+    tbody tr.best-row td:first-child { font-weight: 700; }
+    .model-name-wrap { display: flex; align-items: center; gap: 7px; }
+    .model-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--muted2);
     }
-
-    tbody td {
-      padding: 9px 5px;
-    }
-
-    tbody tr.best td {
-      color: #38bdf8;
-      font-weight: 700;
-    }
-
-    .badge {
-      background: #0ea5e9;
-      color: #fff;
-      font-size: 0.62rem;
-      padding: 1px 6px;
+    tr.best-row .model-dot { background: var(--green); }
+    .best-tag {
+      display: inline-block;
+      background: rgba(34,197,94,0.15);
+      color: var(--green);
+      font-size: 0.6rem;
+      padding: 2px 7px;
       border-radius: 999px;
+      border: 1px solid rgba(34,197,94,0.25);
       margin-left: 5px;
+      font-weight: 700;
+      letter-spacing: .05em;
     }
-
-    .empty {
-      color: #1e3a5f;
-      font-size: 0.85rem;
-      text-align: center;
-      padding: 30px 0;
-    }
-
     .bar-wrap {
-      background: #1e293b;
+      background: var(--border);
       border-radius: 99px;
-      height: 5px;
+      height: 4px;
       width: 100%;
-      margin-top: 3px;
+      margin-top: 4px;
+      min-width: 60px;
     }
-
     .bar-fill {
-      height: 5px;
+      height: 4px;
       border-radius: 99px;
-      background: #0ea5e9;
+      background: var(--accent2);
+      transition: width .6s ease;
+    }
+    tr.best-row .bar-fill { background: var(--green); }
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--muted2);
+      font-size: 0.85rem;
+    }
+    .empty-icon { font-size: 2rem; margin-bottom: 10px; }
+
+    /* ─── CLASSES GRID ─── */
+    .classes-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .class-pill {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .15s;
+      font-size: 0.7rem;
+    }
+    .class-pill:hover { border-color: var(--border2); background: rgba(56,189,248,0.05); }
+    .class-pill.active {
+      border-color: var(--accent);
+      background: rgba(56,189,248,0.1);
+    }
+    .class-emoji { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+    .class-name { color: var(--text2); line-height: 1.2; font-size: 0.65rem; }
+
+    /* ─── PIPELINE SECTION ─── */
+    .pipeline {
+      width: 100%;
+      max-width: 980px;
+      margin-top: 20px;
+    }
+    .pipeline-steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px;
+      position: relative;
+    }
+    .pipeline-steps::after {
+      content: '';
+      position: absolute;
+      top: 24px; left: 10%; right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      z-index: 0;
+    }
+    .step {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .step-num {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      margin: 0 auto 10px;
+    }
+    .step:first-child .step-num { border-color: var(--accent); background: rgba(56,189,248,0.1); }
+    .step:last-child  .step-num { border-color: var(--green);  background: rgba(34,197,94,0.1); }
+    .step-label { font-size: 0.73rem; color: var(--text3); line-height: 1.3; }
+    .step-label strong { display: block; color: var(--text2); font-size: 0.78rem; margin-bottom: 2px; }
+
+    /* ─── INFO FOOTER STRIP ─── */
+    .info-strip {
+      width: 100%;
+      max-width: 980px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .info-card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text3);
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(26,48,80,0.5);
+      font-size: 0.8rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row-label { color: var(--text3); }
+    .info-row-val { color: var(--text2); font-weight: 500; }
+    .info-row-val.accent { color: var(--accent); }
+    .info-row-val.green  { color: var(--green); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 700px) {
+      .stats-strip { grid-template-columns: 1fr 1fr; }
+      .main-grid { grid-template-columns: 1fr; }
+      .classes-grid { grid-template-columns: repeat(5, 1fr); }
+      .pipeline-steps { grid-template-columns: 1fr; gap: 10px; }
+      .pipeline-steps::after { display: none; }
+      .info-strip { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.6rem; }
     }
 
-    tr.best .bar-fill {
-      background: #22c55e;
+    /* ─── TOOLTIP ─── */
+    .tooltip-wrap { position: relative; display: inline-block; }
+    .tooltip-wrap:hover .tooltip { visibility: visible; opacity: 1; }
+    .tooltip {
+      visibility: hidden; opacity: 0;
+      position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
+      background: #1e3a5f; color: var(--text);
+      font-size: 0.72rem; padding: 5px 10px;
+      border-radius: 7px; white-space: nowrap;
+      transition: opacity .15s; pointer-events: none;
+      border: 1px solid var(--border2);
+      z-index: 10;
     }
+
+    /* ─── CONFIDENCE RING (pseudo) ─── */
+    .conf-ring-wrap { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 14px; }
+    .conf-ring {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: conic-gradient(var(--green) 0%, var(--border) 0%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .conf-ring-inner {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700;
+      color: var(--green);
+    }
+    .conf-label { font-size: 0.75rem; color: var(--text3); }
+    .conf-label strong { display: block; font-size: 1rem; color: var(--text); }
   </style>
 </head>
-
 <body>
 
   <header>
-    <h1>🛰️ EuroSAT Land Use Classifier</h1>
-    <p>Machine Learning · PCA · 10 Land Cover Classes · 7 Models Compared</p>
+    <div class="header-badge">🛰️ &nbsp;Remote Sensing · AI Classification</div>
+    <h1>EuroSAT Land Use Classifier</h1>
+    <p>Upload a satellite image to classify its land cover type using 7 ML models.<br>
+    Trained on the EuroSAT dataset — 27,000 images across 10 LULC classes with PCA dimensionality reduction.</p>
   </header>
 
-  <div class="grid">
+  <!-- STAT STRIP -->
+  <div class="stats-strip">
+    <div class="stat-card blue">
+      <div class="stat-label">Dataset Size</div>
+      <div class="stat-value">27K</div>
+      <div class="stat-sub">EuroSAT images</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Land Classes</div>
+      <div class="stat-value">10</div>
+      <div class="stat-sub">LULC categories</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Models Compared</div>
+      <div class="stat-value">7</div>
+      <div class="stat-sub">ML algorithms</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">PCA Components</div>
+      <div class="stat-value">150</div>
+      <div class="stat-sub">from full features</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
 
     <div class="card">
-      <div class="card-title">📤 Upload Satellite Image</div>
+  <div class="card-header">
+    <div class="card-icon blue">📤</div>
+    <div>
+      <div class="card-title">Upload Satellite Image</div>
+      <div class="card-sub">JPG or PNG, any size</div>
+    </div>
+  </div>
 
-      <div class="drop" onclick="document.getElementById('fileIn').click()">
-        <input type="file" id="fileIn" accept="image/*" onchange="onFile(event)" />
-        <div class="drop-icon">🖼️</div>
-        <div class="drop-text" id="dropText">Click to choose image (JPG / PNG)</div>
-        <img id="preview" alt="preview" />
+  <!-- Upload -->
+  <div class="drop-zone" onclick="document.getElementById('fileIn').click()">
+    <input type="file" id="fileIn" accept="image/*" onchange="onFile(event)" />
+    <div class="drop-icon-wrap">🖼️</div>
+    <div class="drop-main-text" id="dropMainText">Drop image here or click to browse</div>
+    <div class="drop-sub-text" id="dropSubText">Supports JPG, PNG, TIF</div>
+    <img id="preview" alt="Uploaded satellite image preview" />
+  </div>
+
+  <!-- Button -->
+  <button class="btn-classify" id="btn" onclick="predict()" disabled>
+    <span>🔍</span> Classify Image
+  </button>
+
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="loader-dots"><span></span><span></span><span></span></div>
+    <div class="loader-text">Analyzing satellite image with all 7 models…</div>
+  </div>
+
+  <!-- Result -->
+  <div id="resultBox">
+    <div class="result-header">
+      <div class="r-emoji" id="rEmoji">🌍</div>
+      <div class="r-label" id="rLabel">—</div>
+      <div class="r-desc" id="rDesc">Predicted Land Cover</div>
+    </div>
+
+    <div class="result-meta">
+      <div class="meta-item">
+        <div class="meta-val" id="rConf">—</div>
+        <div class="meta-lbl">Confidence</div>
       </div>
 
-      <button class="btn" id="btn" onclick="predict()" disabled>
-        🔍 &nbsp;Classify Image
-      </button>
-      <div class="loader" id="loader">⏳ Analyzing satellite image...</div>
+      <div class="meta-item">
+        <div class="meta-val" id="rModels">7</div>
+        <div class="meta-lbl">Models Run</div>
+      </div>
 
-      <div id="resultBox">
-        <div class="r-emoji" id="rEmoji">🌍</div>
-        <div class="r-label" id="rLabel">—</div>
-        <div class="r-desc" id="rDesc">Predicted Land Cover</div>
-        <div class="r-badge" id="rBadge"></div>
+      <div class="meta-item">
+        <div class="meta-val" id="rAgree">—</div>
+        <div class="meta-lbl">Agreement</div>
       </div>
     </div>
 
+    <div class="r-best-badge" id="rBestBadge">—</div>
+  </div>
+
+  <!-- 🔥 TOP 3 -->
+  <div class="card" id="top3Box" style="display:none; margin-top:15px;">
+    <div class="card-title">🏆 Top 3 Predictions</div>
+    <div id="top3"></div>
+  </div>
+
+  <!-- 🤖 MODEL PREDICTIONS -->
+  <div class="card" id="modelsBox" style="margin-top:15px; display:none;">
+    <div class="card-title">🤖 Model Predictions</div>
+    <div id="modelsList"></div>
+  </div>
+
+</div>
+    <!-- RIGHT: Model Comparison -->
     <div class="card">
-      <div class="card-title">📊 Model Comparison</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Model</th>
-            <th>Acc %</th>
-            <th>F1 %</th>
-          </tr>
-        </thead>
-        <tbody id="modelBody">
-          <tr>
-            <td colspan="3" class="empty">
-              Run a prediction to see all 7 model results
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="card-header">
+        <div class="card-icon purple">📊</div>
+        <div>
+          <div class="card-title">Model Comparison</div>
+          <div class="card-sub">Accuracy &amp; F1 across all 7 models</div>
+        </div>
+      </div>
+      <div class="model-table-wrap">
+        <table>
+          <thead>
+            <tr>
+             <th>Model</th>
+<th>Acc %</th>
+<th>F1 %</th>
+<th>Prec %</th>
+<th>Recall %</th>
+            </tr>
+          </thead>
+          <tbody id="modelBody">
+            <tr>
+             <td colspan="5">
+                <div class="empty-state">
+                  <div class="empty-icon">📈</div>
+                  <div>Run a prediction to see<br>all 7 model results here</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </div>
 
+  <!-- LAND COVER CLASSES -->
+  <div class="card" style="width:100%;max-width:980px;margin-top:20px;">
+    <div class="card-header">
+      <div class="card-icon green">🗺️</div>
+      <div>
+        <div class="card-title">10 Land Cover Classes</div>
+        <div class="card-sub">EuroSAT dataset — Sentinel-2 imagery · Click to learn more</div>
+      </div>
+    </div>
+    <div class="classes-grid" id="classGrid">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="pipeline card" style="margin-top:20px;padding:26px;">
+    <div class="card-header" style="margin-bottom:26px;">
+      <div class="card-icon blue">⚙️</div>
+      <div>
+        <div class="card-title">ML Pipeline</div>
+        <div class="card-sub">From raw pixels to prediction</div>
+      </div>
+    </div>
+    <div class="pipeline-steps">
+      <div class="step">
+        <div class="step-num">📥</div>
+        <div class="step-label"><strong>Load</strong>27K images<br>RGB + spectral</div>
+      </div>
+      <div class="step">
+        <div class="step-num">⚖️</div>
+        <div class="step-label"><strong>Scale</strong>StandardScaler<br>zero-mean unit-var</div>
+      </div>
+      <div class="step">
+        <div class="step-num">🔻</div>
+        <div class="step-label"><strong>PCA</strong>→ 150 components<br>variance retained</div>
+      </div>
+      <div class="step">
+        <div class="step-num">🤖</div>
+        <div class="step-label"><strong>Train</strong>7 algorithms<br>80/20 split</div>
+      </div>
+      <div class="step">
+        <div class="step-num">🏆</div>
+        <div class="step-label"><strong>Select</strong>Best model<br>by weighted score</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO STRIP -->
+  <div class="info-strip">
+    <div class="info-card">
+      <div class="info-card-title">🧠 Model Details</div>
+      <div class="info-row"><span class="info-row-label">Decision Tree</span><span class="info-row-val">max_depth=20</span></div>
+      <div class="info-row"><span class="info-row-label">Naive Bayes</span><span class="info-row-val">GaussianNB</span></div>
+      <div class="info-row"><span class="info-row-label">Logistic Reg.</span><span class="info-row-val">saga, C=1.0</span></div>
+      <div class="info-row"><span class="info-row-label">KNN</span><span class="info-row-val">k=7, euclidean</span></div>
+      <div class="info-row"><span class="info-row-label">SVM</span><span class="info-row-val">RBF, C=10</span></div>
+      <div class="info-row"><span class="info-row-label">Hist-GBM</span><span class="info-row-val">lr=0.1, depth=6</span></div>
+      <div class="info-row"><span class="info-row-label">Random Forest</span><span class="info-row-val">300 trees</span></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">📐 Dataset Info</div>
+      <div class="info-row"><span class="info-row-label">Source</span><span class="info-row-val accent">EuroSAT</span></div>
+      <div class="info-row"><span class="info-row-label">Sensor</span><span class="info-row-val">Sentinel-2</span></div>
+      <div class="info-row"><span class="info-row-label">Resolution</span><span class="info-row-val">64 × 64 px</span></div>
+      <div class="info-row"><span class="info-row-label">Train / Test</span><span class="info-row-val">80 / 20 %</span></div>
+      <div class="info-row"><span class="info-row-label">Total images</span><span class="info-row-val green">27,000</span></div>
+      <div class="info-row"><span class="info-row-label">PCA components</span><span class="info-row-val">150</span></div>
+      <div class="info-row"><span class="info-row-label">Stratified split</span><span class="info-row-val green">Yes</span></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">⚙️ Selection Formula</div>
+      <div style="font-size:0.78rem;color:var(--text3);margin-bottom:12px;">Best model chosen by weighted composite score:</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:0.82rem;color:var(--accent);font-family:monospace;line-height:1.8;">
+        0.4 × Accuracy<br>
+        0.3 × Precision<br>
+        0.2 × Recall<br>
+        0.1 × F1 Score
+      </div>
+      <div style="margin-top:12px;font-size:0.75rem;color:var(--text3);">All models saved as .pkl files for inference.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px; width:100%; max-width:980px;">
+  <div class="card-header">
+    <div class="card-icon blue">🔄</div>
+    <div>
+      <div class="card-title">Change Detection</div>
+      <div class="card-sub">Compare two satellite images</div>
+    </div>
+  </div>
+
+  <input type="file" id="img1" style="margin-bottom:10px;">
+  <input type="file" id="img2" style="margin-bottom:10px;">
+
+  <button class="btn-classify" onclick="compareImages()">Compare</button>
+
+  <div id="changeResult" style="margin-top:10px;"></div>
+</div>
+
   <script>
+    const CLASSES = [
+      { name: "Annual Crop",       emoji: "🌾", color: "#f59e0b", desc: "Annual agricultural crops like wheat, corn, sunflower" },
+      { name: "Forest",            emoji: "🌲", color: "#22c55e", desc: "Dense natural or managed forest land" },
+      { name: "Herbaceous Veg.",   emoji: "🌿", color: "#4ade80", desc: "Grasslands and herbaceous vegetation" },
+      { name: "Highway",           emoji: "🛣️", color: "#94a3b8", desc: "Major roads and highway infrastructure" },
+      { name: "Industrial",        emoji: "🏭", color: "#f87171", desc: "Industrial zones, factories, logistics areas" },
+      { name: "Pasture",           emoji: "🐄", color: "#86efac", desc: "Permanent grassland used for livestock" },
+      { name: "Permanent Crop",    emoji: "🫒", color: "#fde68a", desc: "Permanent crops like vineyards, orchards" },
+      { name: "Residential",       emoji: "🏘️", color: "#c4b5fd", desc: "Urban and suburban residential areas" },
+      { name: "River",             emoji: "🌊", color: "#38bdf8", desc: "Rivers, streams and water channels" },
+      { name: "Sea/Lake",          emoji: "🏞️", color: "#0ea5e9", desc: "Open water bodies — sea, lakes, reservoirs" },
+    ];
+
+    const classGrid = document.getElementById('classGrid');
+    CLASSES.forEach((c, i) => {
+      const el = document.createElement('div');
+      el.className = 'class-pill';
+      el.innerHTML = `<span class="class-emoji">${c.emoji}</span><span class="class-name">${c.name}</span>`;
+      el.title = c.desc;
+      el.onclick = () => {
+        document.querySelectorAll('.class-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+      };
+      classGrid.appendChild(el);
+    });
+
     function onFile(e) {
       const file = e.target.files[0];
       if (!file) return;
-      document.getElementById('preview').src = URL.createObjectURL(file);
-      document.getElementById('preview').style.display = 'block';
-      document.getElementById('dropText').textContent = file.name;
+      const prev = document.getElementById('preview');
+      prev.src = URL.createObjectURL(file);
+      prev.style.display = 'block';
+      document.getElementById('dropMainText').textContent = file.name;
+      document.getElementById('dropSubText').textContent =
+        (file.size / 1024).toFixed(1) + ' KB · Click to change';
       document.getElementById('btn').disabled = false;
       document.getElementById('resultBox').style.display = 'none';
     }
@@ -331,6 +811,7 @@
       if (!file) return;
 
       document.getElementById('loader').style.display = 'block';
+     
       document.getElementById('btn').disabled = true;
       document.getElementById('resultBox').style.display = 'none';
 
@@ -338,45 +819,143 @@
       form.append('image', file);
 
       try {
-        const res = await fetch('/predict', { method: 'POST', body: form });
+        const res  = await fetch('/predict', { method: 'POST', body: form });
         const data = await res.json();
+        // ✅ NOW data is available
+if (data.model_predictions) {
+  document.getElementById('modelsBox').style.display = 'block';
 
+  let modelsHTML = '';
+  for (let m in data.model_predictions) {
+    const pred = data.model_predictions[m];
+    const ok = pred === data.prediction ? "✅" : "⚠️";
+    modelsHTML += `<div>${m} → ${pred} ${ok}</div>`;
+  }
+
+  document.getElementById('modelsList').innerHTML = modelsHTML;
+}
         if (data.error) { alert(data.error); return; }
 
-        document.getElementById('rEmoji').textContent = data.emoji;
-        document.getElementById('rLabel').textContent = data.prediction;
-        document.getElementById('rDesc').textContent = data.desc;
-        document.getElementById('rBadge').textContent = `Best model: ${data.best_model}`;
-        const box = document.getElementById('resultBox');
-        box.style.borderColor = data.color;
-        box.style.display = 'block';
+        // Result header
+        document.getElementById('rEmoji').textContent = data.emoji || '🌍';
+        document.getElementById('rLabel').textContent = data.prediction || '—';
+        document.getElementById('rDesc').textContent  = data.desc || 'Predicted Land Cover';
+        document.getElementById('rConf').textContent  = data.confidence ? data.confidence + '%' : '—';
+        document.getElementById('rModels').textContent = '7';
+        document.getElementById('rBestBadge').innerHTML =
+          `Best model: <strong>${data.best_model || '—'}</strong>`;
+          document.getElementById('rAgree').textContent =
+  data.agreement ? data.agreement + "%" : "-";
 
+        const box = document.getElementById('resultBox');
+        box.style.display = 'block';
+        // Top 3 predictions
+if (data.top3) {
+  document.getElementById('top3Box').style.display = 'block';
+
+  let top3HTML = '';
+  data.top3.forEach(t => {
+    top3HTML += `
+      <div style="margin-bottom:10px;">
+        <strong>${t.label}</strong> (${t.confidence}%)
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width:${t.confidence}%"></div>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('top3').innerHTML = top3HTML;
+}
+        box.style.borderColor = data.color || 'var(--border)';
+
+        // Highlight matching class pill
+        const idx = CLASSES.findIndex(c =>
+          c.name.toLowerCase().includes((data.prediction || '').toLowerCase().slice(0,5))
+        );
+        document.querySelectorAll('.class-pill').forEach(p => p.classList.remove('active'));
+        if (idx >= 0) classGrid.children[idx].classList.add('active');
+
+        // Build model table
         const tbody = document.getElementById('modelBody');
         tbody.innerHTML = '';
-        data.model_table.forEach(m => {
+        (data.model_table || []).forEach(m => {
           const tr = document.createElement('tr');
-          if (m.is_best) tr.className = 'best';
+          if (m.is_best) tr.className = 'best-row';
+          const bestTag = m.is_best ? '<span class="best-tag">★ Best</span>' : '';
           tr.innerHTML = `
-          <td>${m.name}${m.is_best
-              ? '<span class="badge">★ Best</span>' : ''}</td>
-          <td>
-            ${m.accuracy}%
-            <div class="bar-wrap">
-              <div class="bar-fill" style="width:${m.accuracy}%"></div>
-            </div>
-          </td>
-          <td>${m.f1}%</td>`;
+            <td>
+              <div class="model-name-wrap">
+                <div class="model-dot"></div>
+                <span>${m.name}${bestTag}</span>
+              </div>
+            </td>
+            <td>
+              <div>${m.accuracy}%</div>
+              <div class="bar-wrap"><div class="bar-fill" style="width:${m.accuracy}%"></div></div>
+            </td>
+            <td>${m.f1 !== undefined ? m.f1 + '%' : '—'}</td>
+<td>${m.precision !== undefined ? m.precision + '%' : '—'}</td>
+<td>${m.recall !== undefined ? m.recall + '%' : '—'}</td>`;
           tbody.appendChild(tr);
         });
 
       } catch (err) {
-        alert("Something went wrong: " + err.message);
+        alert('Something went wrong: ' + err.message);
       } finally {
         document.getElementById('loader').style.display = 'none';
         document.getElementById('btn').disabled = false;
       }
     }
+
+    // Drag-and-drop support
+    const dropZone = document.querySelector('.drop-zone');
+    ['dragenter','dragover'].forEach(ev =>
+      dropZone.addEventListener(ev, e => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--accent)';
+        dropZone.style.background  = 'rgba(56,189,248,0.06)';
+      })
+    );
+    ['dragleave','drop'].forEach(ev =>
+      dropZone.addEventListener(ev, e => {
+        e.preventDefault();
+        dropZone.style.borderColor = '';
+        dropZone.style.background  = '';
+      })
+    );
+    dropZone.addEventListener('drop', e => {
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      document.getElementById('fileIn').files = dt.files;
+      onFile({ target: { files: dt.files } });
+    });
+    async function compareImages() {
+
+  const f1 = document.getElementById("img1").files[0];
+  const f2 = document.getElementById("img2").files[0];
+
+  if (!f1 || !f2) {
+    alert("Upload both images");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("img1", f1);
+  form.append("img2", f2);
+
+  const res = await fetch("/compare", {
+    method: "POST",
+    body: form
+  });
+
+  const data = await res.json();
+
+  document.getElementById("changeResult").innerHTML =
+    `<strong>${data.pred1}</strong> → <strong>${data.pred2}</strong><br>${data.message}`;
+}
   </script>
 </body>
-
 </html>

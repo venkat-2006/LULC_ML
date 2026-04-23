@@ -425,17 +425,17 @@ models = {
 
     "Naive Bayes"        : GaussianNB(),
 
-    "Logistic Regression": LogisticRegression(
-                           max_iter     = 300,   # enough to converge
-                           C            = 1.0,
-                           solver       = 'saga', # fastest for large data
-                           n_jobs       = -1,     # all CPU cores
-                           random_state = 42),
-    #                        "Logistic Regression": LogisticRegression(
-    # max_iter     = 300,
-    # C            = 1.0,
-    # solver       = 'saga',
-    # random_state = 42),
+    # "Logistic Regression": LogisticRegression(
+    #                        max_iter     = 300,   # enough to converge
+    #                        C            = 1.0,
+    #                        solver       = 'saga', # fastest for large data
+    #                        n_jobs       = -1,     # all CPU cores
+    #                        random_state = 42),
+                           "Logistic Regression": LogisticRegression(
+    max_iter     = 300,
+    C            = 1.0,
+    solver       = 'saga',
+    random_state = 42),
 
     "KNN"                : KNeighborsClassifier(
                                n_neighbors  = 7,
